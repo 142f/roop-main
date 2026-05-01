@@ -1,3 +1,4 @@
+import os
 import threading
 from typing import Any, Optional, List
 import insightface
@@ -16,9 +17,10 @@ def get_face_analyser() -> Any:
 
     with THREAD_LOCK:
         if FACE_ANALYSER is None:
+            insightface_root = os.environ.get('ROOP_INSIGHTFACE_HOME', resolve_relative_path('..'))
             FACE_ANALYSER = insightface.app.FaceAnalysis(
                 name='buffalo_l',
-                root=resolve_relative_path('..'),
+                root=insightface_root,
                 providers=roop.globals.execution_providers
             )
             FACE_ANALYSER.prepare(ctx_id=0, det_thresh=0.1)

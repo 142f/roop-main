@@ -1,4 +1,5 @@
 from typing import Any, List, Callable
+import os
 import cv2
 import insightface
 import threading
@@ -33,10 +34,17 @@ def clear_face_swapper() -> None:
 
 
 def pre_check() -> bool:
-    download_directory_path = resolve_relative_path('../models')
-    conditional_download(download_directory_path, ['https://huggingface.co/CountFloyd/deepfake/resolve/main/inswapper_128.onnx'])
-    return True
+    model_path = resolve_relative_path('../models/inswapper_128.onnx')
+    if os.path.isfile(model_path):
+        return True
 
+    if os.environ.get('ROOP_ALLOW_DOWNLOAD') == '1':
+        download_directory_path = resolve_relative_path('../models')
+        conditional_download(download_directory_path, ['https://huggingface.co/CountFloyd/deepfake/resolve/main/inswapper_128.onnx'])
+        return os.path.isfile(model_path)
+
+    update_status(f'Model not found: {model_path}. Set ROOP_ALLOW_DOWNLOAD=1 to download it automatically.', NAME)
+    return False
 
 def pre_start() -> bool:
     if not is_image(roop.globals.source_path):

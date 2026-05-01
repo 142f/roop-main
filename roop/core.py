@@ -19,7 +19,7 @@ import roop.globals
 import roop.metadata
 from roop.predictor import predict_image, predict_video
 from roop.processors.frame.core import get_frame_processors_modules
-from roop.utilities import has_image_extension, is_image, is_video, detect_fps, create_video, extract_frames, get_temp_frame_paths, restore_audio, create_temp, move_temp, clean_temp, normalize_output_path
+from roop.utilities import has_image_extension, is_image, is_video, detect_fps, create_video, extract_frames, get_temp_frame_paths, restore_audio, create_temp, move_temp, clean_temp, normalize_output_path, get_ffmpeg_bin, get_ffprobe_bin
 
 warnings.filterwarnings('ignore', category=FutureWarning, module='insightface')
 warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
@@ -115,8 +115,11 @@ def pre_check() -> bool:
     if sys.version_info < (3, 9):
         update_status('Python version is not supported - please upgrade to 3.9 or higher.')
         return False
-    if not shutil.which('ffmpeg'):
+    if not shutil.which(get_ffmpeg_bin()):
         update_status('ffmpeg is not installed.')
+        return False
+    if not shutil.which(get_ffprobe_bin()):
+        update_status('ffprobe is not installed.')
         return False
     return True
 

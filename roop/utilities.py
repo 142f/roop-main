@@ -20,19 +20,31 @@ if platform.system().lower() == 'darwin':
     ssl._create_default_https_context = ssl._create_unverified_context
 
 
+def get_ffmpeg_bin() -> str:
+    return os.environ.get('ROOP_FFMPEG_BIN', 'ffmpeg')
+
+
+def get_ffprobe_bin() -> str:
+    return os.environ.get('ROOP_FFPROBE_BIN', 'ffprobe')
+
+
 def run_ffmpeg(args: List[str]) -> bool:
-    commands = ['ffmpeg', '-hide_banner', '-loglevel', roop.globals.log_level]
+    commands = [get_ffmpeg_bin(), '-hide_banner', '-loglevel', roop.globals.log_level]
     commands.extend(args)
     try:
         subprocess.check_output(commands, stderr=subprocess.STDOUT)
         return True
-    except Exception:
-        pass
+    except subprocess.CalledProcessError as exception:
+        output = exception.output.decode(errors='ignore').strip()
+        if output:
+            print(output)
+    except Exception as exception:
+        print(f'ffmpeg failed: {exception}')
     return False
 
 
 def detect_fps(target_path: str) -> float:
-    command = ['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=r_frame_rate', '-of', 'default=noprint_wrappers=1:nokey=1', target_path]
+    command = [get_ffprobe_bin(), '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=r_frame_rate', '-of', 'default=noprint_wrappers=1:nokey=1', target_path]
     output = subprocess.check_output(command).decode().strip().split('/')
     try:
         numerator, denominator = map(int, output)
