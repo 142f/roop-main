@@ -1,0 +1,45 @@
+# roop CPU Headless 服务器依赖清单
+# 基于 2026-05-01 本地完整验收测试结果
+# 
+# 使用方式:
+#   python -m venv .venv_server
+#   source .venv_server/bin/activate
+#   pip install -r requirements-server-cpu.txt
+#
+# 注意事项:
+#   1. 仅包含 CPU 推理所需依赖，不包含 GPU/Web/增强等可选模块
+#   2. opencv-python-headless 适合无桌面服务器，不包含 GUI 依赖
+#   3. 不要同时安装 opencv-python 和 opencv-python-headless
+#   4. 不要混装 onnxruntime 和 onnxruntime-gpu
+#   5. 系统需要另外安装: ffmpeg, ffprobe (apt-get install -y ffmpeg)
+
+# 核心数据处理
+numpy==1.24.4
+scipy==1.11.4
+
+# 图像处理 - 服务器建议用 headless 版本
+opencv-python-headless==4.11.0.86
+Pillow==12.1.1
+
+# ONNX 模型格式与推理引擎
+onnx==1.14.0
+onnxruntime==1.15.0
+
+# 深度学习框架 (NSFW 检测)
+tensorflow==2.13.0
+protobuf==4.23.4
+
+# 人脸检测与识别 (使用 ONNX 推理)
+insightface==0.7.3
+
+# NSFW 检测模型
+opennsfw2==0.10.2
+
+# 系统监控与进度条
+psutil==5.9.5
+tqdm==4.65.0
+
+# 可选: 数据处理
+# (当前 roop CLI 不需要，仅在扩展功能时使用)
+# pandas>=1.3.0
+# scikit-image>=0.18.0
