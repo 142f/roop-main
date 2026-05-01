@@ -12,6 +12,12 @@ FACE_ANALYSER = None
 THREAD_LOCK = threading.Lock()
 
 
+def get_context_id() -> int:
+    if 'CUDAExecutionProvider' in roop.globals.execution_providers:
+        return 0
+    return -1
+
+
 def get_face_analyser() -> Any:
     global FACE_ANALYSER
 
@@ -23,7 +29,7 @@ def get_face_analyser() -> Any:
                 root=insightface_root,
                 providers=roop.globals.execution_providers
             )
-            FACE_ANALYSER.prepare(ctx_id=0, det_thresh=0.1)
+            FACE_ANALYSER.prepare(ctx_id=get_context_id(), det_thresh=0.1)
     return FACE_ANALYSER
 
 

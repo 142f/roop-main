@@ -35,6 +35,13 @@ target_label = None
 status_label = None
 
 
+def destroy_opencv_windows() -> None:
+    try:
+        cv2.destroyAllWindows()
+    except cv2.error:
+        pass
+
+
 # todo: remove by native support -> https://github.com/TomSchimansky/CustomTkinter/issues/934
 class CTk(ctk.CTk, TkinterDnD.DnDWrapper):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -217,7 +224,7 @@ def render_video_preview(video_path: str, size: Tuple[int, int], frame_number: i
             image = ImageOps.fit(image, size, Image.LANCZOS)
         return ctk.CTkImage(image, size=image.size)
     capture.release()
-    cv2.destroyAllWindows()
+    destroy_opencv_windows()
 
 
 def toggle_preview() -> None:

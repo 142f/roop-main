@@ -1,8 +1,9 @@
 import threading
+import cv2
 import numpy
 import opennsfw2
 from PIL import Image
-from keras import Model
+from tensorflow.keras import Model
 
 from roop.typing import Frame
 
@@ -43,9 +44,24 @@ def predict_image(target_path: str) -> bool:
 
 
 def predict_video(target_path: str) -> bool:
+    capture = None
     try:
-        _, probabilities = opennsfw2.predict_video_frames(video_path=target_path, frame_interval=100)
-        return any(probability > MAX_PROBABILITY for probability in probabilities)
+        capture = cv2.VideoCapture(target_path)
+        if not capture.isOpened():
+            return False
+        frame_number = 0
+        while True:
+            has_frame, frame = capture.read()
+            if not has_frame:
+                return False
+            if frame_number % 100 == 0:
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                if predict_frame(frame):
+                    return True
+            frame_number += 1
     except Exception as exception:
         print(f'[ROOP.PREDICTOR] Skipping video NSFW prediction: {exception}')
         return False
+    finally:
+        if capture:
+            capture.release()
