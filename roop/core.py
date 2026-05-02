@@ -146,7 +146,7 @@ def start() -> None:
             frame_processor.process_image(roop.globals.source_path, roop.globals.output_path, roop.globals.output_path)
             frame_processor.post_process()
         # validate image
-        if is_image(roop.globals.target_path):
+        if is_image(roop.globals.output_path):
             update_status('Processing to image succeed!')
         else:
             update_status('Processing to image failed!')
@@ -196,7 +196,7 @@ def start() -> None:
     update_status('Cleaning temporary resources...')
     clean_temp(roop.globals.target_path)
     # validate video
-    if is_video(roop.globals.target_path):
+    if is_video(roop.globals.output_path):
         update_status('Processing to video succeed!')
     else:
         update_status('Processing to video failed!')

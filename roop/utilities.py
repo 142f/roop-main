@@ -75,9 +75,16 @@ def create_video(target_path: str, fps: float = 30) -> bool:
 
 def restore_audio(target_path: str, output_path: str) -> None:
     temp_output_path = get_temp_output_path(target_path)
-    done = run_ffmpeg(['-i', temp_output_path, '-i', target_path, '-c:v', 'copy', '-map', '0:v:0', '-map', '1:a:0', '-y', output_path])
+    output_directory = os.path.dirname(output_path)
+    output_name, output_extension = os.path.splitext(os.path.basename(output_path))
+    final_output_path = os.path.join(output_directory, output_name + '.overwrite' + output_extension)
+    if os.path.isfile(final_output_path):
+        os.remove(final_output_path)
+    done = run_ffmpeg(['-i', temp_output_path, '-i', target_path, '-c:v', 'copy', '-map', '0:v:0', '-map', '1:a:0', '-y', final_output_path])
     if not done:
         move_temp(target_path, output_path)
+        return
+    os.replace(final_output_path, output_path)
 
 
 def get_temp_frame_paths(target_path: str) -> List[str]:
@@ -113,9 +120,7 @@ def create_temp(target_path: str) -> None:
 def move_temp(target_path: str, output_path: str) -> None:
     temp_output_path = get_temp_output_path(target_path)
     if os.path.isfile(temp_output_path):
-        if os.path.isfile(output_path):
-            os.remove(output_path)
-        shutil.move(temp_output_path, output_path)
+        os.replace(temp_output_path, output_path)
 
 
 def clean_temp(target_path: str) -> None:
