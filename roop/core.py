@@ -19,7 +19,7 @@ import roop.globals
 import roop.metadata
 from roop.predictor import predict_image, predict_video
 from roop.processors.frame.core import get_frame_processors_modules
-from roop.utilities import has_image_extension, is_image, is_video, detect_fps, create_video, extract_frames, get_temp_frame_paths, restore_audio, create_temp, move_temp, clean_temp, normalize_output_path, get_ffmpeg_bin, get_ffprobe_bin
+from roop.utilities import has_image_extension, is_image, is_video, detect_fps, create_video, extract_frames, get_temp_frame_paths, restore_audio, create_temp, move_temp, clean_temp, normalize_output_path, get_ffmpeg_bin, get_ffprobe_bin, configure_runtime_asset_env
 
 warnings.filterwarnings('ignore', category=FutureWarning, module='insightface')
 warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
@@ -44,7 +44,7 @@ def parse_args() -> None:
     program.add_argument('--output-video-encoder', help='encoder used for the output video', dest='output_video_encoder', default='libx264', choices=['libx264', 'libx265', 'libvpx-vp9', 'h264_nvenc', 'hevc_nvenc'])
     program.add_argument('--output-video-quality', help='quality used for the output video', dest='output_video_quality', type=int, default=35, choices=range(101), metavar='[0-100]')
     program.add_argument('--max-memory', help='maximum amount of RAM in GB', dest='max_memory', type=int)
-    program.add_argument('--execution-provider', help='available execution provider (choices: cpu, ...)', dest='execution_provider', default=['cpu'], choices=suggest_execution_providers(), nargs='+')
+    program.add_argument('--execution-provider', help='available execution provider (choices: cpu, ...)', dest='execution_provider', default=suggest_default_execution_provider(), choices=suggest_execution_providers(), nargs='+')
     program.add_argument('--execution-threads', help='number of execution threads', dest='execution_threads', type=int, default=suggest_execution_threads())
     program.add_argument('-v', '--version', action='version', version=f'{roop.metadata.name} {roop.metadata.version}')
 
@@ -82,6 +82,13 @@ def decode_execution_providers(execution_providers: List[str]) -> List[str]:
 
 def suggest_execution_providers() -> List[str]:
     return encode_execution_providers(onnxruntime.get_available_providers())
+
+
+def suggest_default_execution_provider() -> List[str]:
+    available_providers = suggest_execution_providers()
+    if 'cuda' in available_providers:
+        return ['cuda']
+    return ['cpu']
 
 
 def suggest_execution_threads() -> int:
@@ -209,6 +216,7 @@ def destroy() -> None:
 
 
 def run() -> None:
+    configure_runtime_asset_env()
     parse_args()
     if not pre_check():
         return

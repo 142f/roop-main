@@ -6,7 +6,7 @@ import numpy
 
 import roop.globals
 from roop.typing import Frame, Face
-from roop.utilities import resolve_relative_path
+from roop.utilities import configure_runtime_asset_env, get_insightface_root_path
 
 FACE_ANALYSER = None
 THREAD_LOCK = threading.Lock()
@@ -23,10 +23,10 @@ def get_face_analyser() -> Any:
 
     with THREAD_LOCK:
         if FACE_ANALYSER is None:
-            insightface_root = os.environ.get('ROOP_INSIGHTFACE_HOME', resolve_relative_path('..'))
+            configure_runtime_asset_env()
             FACE_ANALYSER = insightface.app.FaceAnalysis(
                 name='buffalo_l',
-                root=insightface_root,
+                root=get_insightface_root_path(),
                 providers=roop.globals.execution_providers
             )
             FACE_ANALYSER.prepare(ctx_id=get_context_id(), det_thresh=0.1)

@@ -1,3 +1,4 @@
+import os
 import threading
 import cv2
 import numpy
@@ -12,12 +13,23 @@ THREAD_LOCK = threading.Lock()
 MAX_PROBABILITY = 0.85
 
 
+def get_project_root() -> str:
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+
+def get_open_nsfw_weights_path() -> str:
+    return os.environ.get(
+        'ROOP_OPENNSFW2_WEIGHTS',
+        os.path.join(get_project_root(), '.opennsfw2', 'weights', 'open_nsfw_weights.h5')
+    )
+
+
 def get_predictor() -> Model:
     global PREDICTOR
 
     with THREAD_LOCK:
         if PREDICTOR is None:
-            PREDICTOR = opennsfw2.make_open_nsfw_model()
+            PREDICTOR = opennsfw2.make_open_nsfw_model(weights_path=get_open_nsfw_weights_path())
     return PREDICTOR
 
 
@@ -37,7 +49,7 @@ def predict_frame(target_frame: Frame) -> bool:
 
 def predict_image(target_path: str) -> bool:
     try:
-        return opennsfw2.predict_image(target_path) > MAX_PROBABILITY
+        return opennsfw2.predict_image(target_path, weights_path=get_open_nsfw_weights_path()) > MAX_PROBABILITY
     except Exception as exception:
         print(f'[ROOP.PREDICTOR] Skipping image NSFW prediction: {exception}')
         return False

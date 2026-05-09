@@ -8,7 +8,7 @@ import roop.processors.frame.core
 from roop.core import update_status
 from roop.face_analyser import get_many_faces
 from roop.typing import Frame, Face
-from roop.utilities import conditional_download, resolve_relative_path, is_image, is_video
+from roop.utilities import conditional_download, configure_runtime_asset_env, get_gfpgan_weights_directory_path, get_model_path, get_models_directory_path, is_image, is_video
 
 FACE_ENHANCER = None
 THREAD_SEMAPHORE = threading.Semaphore()
@@ -29,10 +29,15 @@ def get_face_enhancer() -> Any:
 
     with THREAD_LOCK:
         if FACE_ENHANCER is None:
-            model_path = resolve_relative_path('../models/GFPGANv1.4.pth')
-            # todo: set models path -> https://github.com/TencentARC/GFPGAN/issues/399
+            configure_runtime_asset_env()
+            model_path = get_model_path('GFPGANv1.4.pth')
             GFPGANer = get_gfpganer_class()
-            FACE_ENHANCER = GFPGANer(model_path=model_path, upscale=1, device=get_device())
+            FACE_ENHANCER = GFPGANer(
+                model_path=model_path,
+                upscale=1,
+                device=get_device(),
+                model_rootpath=get_gfpgan_weights_directory_path()
+            )
     return FACE_ENHANCER
 
 
@@ -57,12 +62,13 @@ def pre_check() -> bool:
         update_status(str(error), NAME)
         return False
 
-    model_path = resolve_relative_path('../models/GFPGANv1.4.pth')
+    configure_runtime_asset_env()
+    model_path = get_model_path('GFPGANv1.4.pth')
     if os.path.isfile(model_path):
         return True
 
     if os.environ.get('ROOP_ALLOW_DOWNLOAD') == '1':
-        download_directory_path = resolve_relative_path('../models')
+        download_directory_path = get_models_directory_path()
         conditional_download(download_directory_path, ['https://github.com/TencentARC/GFPGAN/releases/download/v1.3.4/GFPGANv1.4.pth'])
         return os.path.isfile(model_path)
 

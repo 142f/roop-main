@@ -28,6 +28,44 @@ def get_ffprobe_bin() -> str:
     return os.environ.get('ROOP_FFPROBE_BIN', 'ffprobe')
 
 
+def get_project_root_path() -> str:
+    return resolve_relative_path('..')
+
+
+def get_assets_root_path() -> str:
+    return os.path.abspath(os.environ.get('ROOP_ASSETS_ROOT', get_project_root_path()))
+
+
+def get_models_directory_path() -> str:
+    return os.path.join(get_assets_root_path(), 'models')
+
+
+def get_model_path(file_name: str) -> str:
+    return os.path.join(get_models_directory_path(), file_name)
+
+
+def get_insightface_root_path() -> str:
+    return os.path.abspath(os.environ.get('ROOP_INSIGHTFACE_HOME', get_assets_root_path()))
+
+
+def get_gfpgan_weights_directory_path() -> str:
+    return os.path.join(get_assets_root_path(), 'gfpgan', 'weights')
+
+
+def get_opennsfw_weights_path() -> str:
+    return os.path.join(get_assets_root_path(), '.opennsfw2', 'weights', 'open_nsfw_weights.h5')
+
+
+def configure_runtime_asset_env() -> None:
+    assets_root = get_assets_root_path()
+    os.environ.setdefault('ROOP_ASSETS_ROOT', assets_root)
+    os.environ.setdefault('ROOP_INSIGHTFACE_HOME', assets_root)
+    os.environ.setdefault('OPENNSFW2_HOME', assets_root)
+    os.environ.setdefault('TORCH_HOME', os.path.join(assets_root, '.torch'))
+    os.environ.setdefault('HF_HOME', os.path.join(assets_root, '.cache', 'huggingface'))
+    os.environ.setdefault('XDG_CACHE_HOME', os.path.join(assets_root, '.cache'))
+
+
 def run_ffmpeg(args: List[str]) -> bool:
     commands = [get_ffmpeg_bin(), '-hide_banner', '-loglevel', roop.globals.log_level]
     commands.extend(args)
